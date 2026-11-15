@@ -1,0 +1,548 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Student REST Service",
+    "version": "1.0.0",
+    "description": "JAX-RS coursework API. In-memory storage resets on restart. PUT replaces all editable fields."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8085/api"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Students",
+      "description": "Students and their dependent subjects"
+    }
+  ],
+  "paths": {
+    "/students": {
+      "get": {
+        "summary": "List all students",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Student"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "listStudents",
+        "tags": [
+          "Students"
+        ]
+      },
+      "post": {
+        "summary": "Create a student",
+        "responses": {
+          "201": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Student"
+                }
+              }
+            },
+            "headers": {
+              "Location": {
+                "description": "Absolute URL of the created student",
+                "schema": {
+                  "type": "string",
+                  "format": "uri"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid identifier or student JSON",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Content-Type must be application/json",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudentRequest"
+              },
+              "example": {
+                "name": "Grace Hopper",
+                "age": 25,
+                "gpa": 3.7,
+                "active": true,
+                "studyGroup": "C",
+                "subjects": [
+                  {
+                    "code": "CS301",
+                    "name": "Compilers",
+                    "credits": 6
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "operationId": "createStudent",
+        "tags": [
+          "Students"
+        ]
+      }
+    },
+    "/students/{id}/subjects": {
+      "get": {
+        "summary": "List a student's subjects",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Subject"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid identifier or student JSON",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Student not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "operationId": "listSubjects",
+        "tags": [
+          "Students"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Positive, server-assigned student identifier",
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 1
+            }
+          }
+        ]
+      }
+    },
+    "/students/{id}": {
+      "get": {
+        "summary": "Get a student",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Student"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid identifier or student JSON",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Student not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "operationId": "getStudent",
+        "tags": [
+          "Students"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Positive, server-assigned student identifier",
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 1
+            }
+          }
+        ]
+      },
+      "delete": {
+        "summary": "Delete a student",
+        "responses": {
+          "204": {
+            "description": "Deleted; no response body"
+          },
+          "400": {
+            "description": "Invalid identifier or student JSON",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Student not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "operationId": "deleteStudent",
+        "tags": [
+          "Students"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Positive, server-assigned student identifier",
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 1
+            }
+          }
+        ]
+      },
+      "put": {
+        "summary": "Replace a student",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Student"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid identifier or student JSON",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Student not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Content-Type must be application/json",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudentRequest"
+              },
+              "example": {
+                "name": "Grace Hopper",
+                "age": 25,
+                "gpa": 3.7,
+                "active": true,
+                "studyGroup": "C",
+                "subjects": [
+                  {
+                    "code": "CS301",
+                    "name": "Compilers",
+                    "credits": 6
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "operationId": "updateStudent",
+        "tags": [
+          "Students"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Positive, server-assigned student identifier",
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 1
+            }
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Subject": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "code",
+          "name",
+          "credits"
+        ],
+        "properties": {
+          "code": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20,
+            "pattern": "\\S"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "pattern": "\\S"
+          },
+          "credits": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 1,
+            "maximum": 30
+          }
+        }
+      },
+      "StudentRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "age",
+          "gpa",
+          "active",
+          "studyGroup",
+          "subjects"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "pattern": "\\S",
+            "description": "Trimmed student name; must contain a non-whitespace character"
+          },
+          "age": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 16,
+            "maximum": 120
+          },
+          "gpa": {
+            "type": "number",
+            "format": "float",
+            "minimum": 0,
+            "maximum": 4
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "studyGroup": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1,
+            "pattern": "^[A-Z]$",
+            "description": "Java char, represented as a single-character JSON string"
+          },
+          "subjects": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Subject"
+            },
+            "description": "Required list, possibly empty; subject codes must be unique"
+          }
+        },
+        "example": {
+          "name": "Grace Hopper",
+          "age": 25,
+          "gpa": 3.7,
+          "active": true,
+          "studyGroup": "C",
+          "subjects": [
+            {
+              "code": "CS301",
+              "name": "Compilers",
+              "credits": 6
+            }
+          ]
+        }
+      },
+      "Student": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "name",
+          "age",
+          "gpa",
+          "active",
+          "studyGroup",
+          "subjects"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1,
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "pattern": "\\S",
+            "description": "Trimmed student name; must contain a non-whitespace character"
+          },
+          "age": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 16,
+            "maximum": 120
+          },
+          "gpa": {
+            "type": "number",
+            "format": "float",
+            "minimum": 0,
+            "maximum": 4
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "studyGroup": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1,
+            "pattern": "^[A-Z]$",
+            "description": "Java char, represented as a single-character JSON string"
+          },
+          "subjects": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Subject"
+            },
+            "description": "Required list, possibly empty; subject codes must be unique"
+          }
+        },
+        "example": {
+          "id": 3,
+          "name": "Grace Hopper",
+          "age": 25,
+          "gpa": 3.7,
+          "active": true,
+          "studyGroup": "C",
+          "subjects": [
+            {
+              "code": "CS301",
+              "name": "Compilers",
+              "credits": 6
+            }
+          ]
+        }
+      },
+      "ApiError": {
+        "type": "object",
+        "required": [
+          "status",
+          "message"
+        ],
+        "properties": {
+          "status": {
+            "type": "integer"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "example": {
+          "status": 404,
+          "message": "Student 999 was not found."
+        }
+      }
+    }
+  },
+  "x-generation": "Jersey WADL plus explicit JSON schema and response metadata"
+}

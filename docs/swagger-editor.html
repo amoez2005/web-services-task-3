@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Student REST Service - Swagger Editor</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-editor-dist@4.14.6/swagger-editor.css">
+    <style>
+      body { margin: 0; }
+      #swagger-editor { height: 100vh; }
+    </style>
+  </head>
+  <body>
+    <div id="swagger-editor"></div>
+    <script src="https://cdn.jsdelivr.net/npm/swagger-editor-dist@4.14.6/swagger-editor-bundle.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/swagger-editor-dist@4.14.6/swagger-editor-standalone-preset.js"></script>
+    <script>
+      window.onload = () => SwaggerEditorBundle({
+        url: "../api/openapi.json",
+        dom_id: "#swagger-editor",
+        layout: "StandaloneLayout",
+        presets: [SwaggerEditorStandalonePreset]
+      });
+    </script>
+  </body>
+</html>

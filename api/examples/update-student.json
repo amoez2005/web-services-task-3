@@ -1,0 +1,14 @@
+{
+  "name": "Grace Murray Hopper",
+  "age": 25,
+  "gpa": 4.0,
+  "active": false,
+  "studyGroup": "C",
+  "subjects": [
+    {
+      "code": "CS301",
+      "name": "Compilers",
+      "credits": 6
+    }
+  ]
+}

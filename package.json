@@ -1,0 +1,14 @@
+{
+  "name": "student-rest-service-api-checks",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Optional OpenAPI validation and Postman collection runner for the Java service",
+  "scripts": {
+    "api:validate": "node tools/validate-openapi.cjs",
+    "api:test": "newman run postman/StudentService.postman_collection.json -e postman/Local.postman_environment.json --reporters cli,json,junit --reporter-json-export target/newman/results.json --reporter-junit-export target/newman/results.xml"
+  },
+  "devDependencies": {
+    "@apidevtools/swagger-parser": "10.1.1",
+    "newman": "6.2.1"
+  }
+}

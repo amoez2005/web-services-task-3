@@ -1,0 +1,436 @@
+{
+  "info": {
+    "name": "Student REST Service",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Run in order against the local service. The created student is deleted at the end."
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8085/api"
+    },
+    {
+      "key": "studentId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "01 - Fetch generated WADL",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/vnd.sun.wadl+xml"
+          }
+        ],
+        "url": "{{baseUrl}}/application.wadl"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"WADL contains students\", () => pm.expect(pm.response.text()).to.include(\"students\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 - List students",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/students"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"JSON response\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"));",
+              "pm.test(\"Student list\", () => pm.expect(pm.response.json()).to.be.an(\"array\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 - Create student",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/students",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Grace Hopper\",\n  \"age\": 25,\n  \"gpa\": 3.7,\n  \"active\": true,\n  \"studyGroup\": \"C\",\n  \"subjects\": [\n    {\n      \"code\": \"CS301\",\n      \"name\": \"Compilers\",\n      \"credits\": 6\n    }\n  ]\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+              "pm.test(\"JSON response\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"));",
+              "const student = pm.response.json(); pm.collectionVariables.set(\"studentId\", String(student.id));",
+              "pm.test(\"Server-assigned ID\", () => pm.expect(student.id).to.be.above(0));",
+              "pm.test(\"Location identifies student\", () => pm.expect(pm.response.headers.get(\"Location\")).to.eql(pm.variables.get(\"baseUrl\") + \"/students/\" + student.id));",
+              "pm.test(\"Dependent subject\", () => pm.expect(student.subjects[0].code).to.eql(\"CS301\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 - Get created student",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/students/{{studentId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"JSON response\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"));",
+              "pm.test(\"Correct student\", () => pm.expect(pm.response.json().name).to.eql(\"Grace Hopper\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 - Get dependent subjects",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/students/{{studentId}}/subjects"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"JSON response\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"));",
+              "pm.test(\"Subject list\", () => pm.expect(pm.response.json()[0].name).to.eql(\"Compilers\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 - Replace student",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/students/{{studentId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Grace Murray Hopper\",\n  \"age\": 25,\n  \"gpa\": 4.0,\n  \"active\": false,\n  \"studyGroup\": \"C\",\n  \"subjects\": [\n    {\n      \"code\": \"CS301\",\n      \"name\": \"Compilers\",\n      \"credits\": 6\n    }\n  ]\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"JSON response\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"));",
+              "pm.test(\"Replacement applied\", () => { pm.expect(pm.response.json().name).to.eql(\"Grace Murray Hopper\"); pm.expect(pm.response.json().active).to.eql(false); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 - Reject invalid age",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/students",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Grace Hopper\",\n  \"age\": 10,\n  \"gpa\": 3.7,\n  \"active\": true,\n  \"studyGroup\": \"C\",\n  \"subjects\": [\n    {\n      \"code\": \"CS301\",\n      \"name\": \"Compilers\",\n      \"credits\": 6\n    }\n  ]\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));",
+              "pm.test(\"JSON response\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"));",
+              "pm.test(\"Error contract\", () => { pm.expect(pm.response.json().status).to.eql(400); pm.expect(pm.response.json().message).to.be.a(\"string\"); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "08 - Reject missing required field",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/students",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Grace Hopper\",\n  \"age\": 25,\n  \"gpa\": 3.7,\n  \"studyGroup\": \"C\",\n  \"subjects\": [\n    {\n      \"code\": \"CS301\",\n      \"name\": \"Compilers\",\n      \"credits\": 6\n    }\n  ]\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));",
+              "pm.test(\"JSON response\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"));",
+              "pm.test(\"Error contract\", () => { pm.expect(pm.response.json().status).to.eql(400); pm.expect(pm.response.json().message).to.be.a(\"string\"); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "09 - Reject malformed JSON",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/students",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\":",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));",
+              "pm.test(\"JSON response\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"));",
+              "pm.test(\"Error contract\", () => { pm.expect(pm.response.json().status).to.eql(400); pm.expect(pm.response.json().message).to.be.a(\"string\"); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "10 - Reject wrong media type",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "text/plain"
+          }
+        ],
+        "url": "{{baseUrl}}/students",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Grace Hopper\",\n  \"age\": 25,\n  \"gpa\": 3.7,\n  \"active\": true,\n  \"studyGroup\": \"C\",\n  \"subjects\": [\n    {\n      \"code\": \"CS301\",\n      \"name\": \"Compilers\",\n      \"credits\": 6\n    }\n  ]\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 415\", () => pm.response.to.have.status(415));",
+              "pm.test(\"JSON response\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"));",
+              "pm.test(\"Error contract\", () => { pm.expect(pm.response.json().status).to.eql(415); pm.expect(pm.response.json().message).to.be.a(\"string\"); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "11 - Reject missing student",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/students/9223372036854775807"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 404\", () => pm.response.to.have.status(404));",
+              "pm.test(\"JSON response\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"));",
+              "pm.test(\"Error contract\", () => { pm.expect(pm.response.json().status).to.eql(404); pm.expect(pm.response.json().message).to.be.a(\"string\"); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12 - Delete created student",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/students/{{studentId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 204\", () => pm.response.to.have.status(204));",
+              "pm.test(\"No response body\", () => pm.expect(pm.response.text()).to.eql(\"\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "13 - Confirm deletion",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/students/{{studentId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 404\", () => pm.response.to.have.status(404));",
+              "pm.test(\"JSON response\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"));",
+              "pm.test(\"Error contract\", () => { pm.expect(pm.response.json().status).to.eql(404); pm.expect(pm.response.json().message).to.be.a(\"string\"); });"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

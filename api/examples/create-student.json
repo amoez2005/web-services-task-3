@@ -1,0 +1,14 @@
+{
+  "name": "Grace Hopper",
+  "age": 25,
+  "gpa": 3.7,
+  "active": true,
+  "studyGroup": "C",
+  "subjects": [
+    {
+      "code": "CS301",
+      "name": "Compilers",
+      "credits": 6
+    }
+  ]
+}
